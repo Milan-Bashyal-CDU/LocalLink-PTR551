@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+  <div class="col-lg-8">
+    <div class="card p-4 mb-3">
+      <div class="d-flex justify-content-between">
+        <h3 class="mb-0">{{ req.title }}</h3>
+        <span class="badge bg-{{ req.status_badge }} align-self-start">{{ req.get_status_display }}</span>
+      </div>
+      <div class="text-muted small mt-1">
+        <i class="bi bi-tag"></i> {{ req.category }} ·
+        <i class="bi bi-geo-alt"></i> {{ req.suburb }}{% if req.is_remote_ok %} (remote OK){% endif %} ·
+        <span class="badge bg-{{ req.urgency_badge }}">{{ req.get_urgency_display }}</span>
+        {% if req.preferred_date %} · preferred: {{ req.preferred_date|date:"d M Y" }}{% endif %}
+      </div>
+      <hr>
+      <p style="white-space:pre-line">{{ req.description }}</p>
+      <div class="small text-muted">Posted by
+        <a href="{% url 'user_profile' req.seeker.username %}">{{ req.seeker.get_full_name|default:req.seeker.username }}</a>
+        · {{ req.created_at|date:"d M Y" }}</div>
+    </div>
+
+    {# Helper: make an offer #}
+    {% if can_offer %}
+      <div class="card p-4 mb-3">
+        <h5>Offer to help</h5>
+        <form method="post" action="{% url 'offer_create' req.pk %}">{% csrf_token %}
+          {{ offer_form.message }}
+          <button class="btn btn-ll mt-2">Send offer</button>
+        </form>
+      </div>
+    {% elif user_offer %}
+      <div class="alert alert-info">You offered to help on {{ user_offer.created_at|date:"d M Y" }} — status: <strong>{{ user_offer.get_status_display }}</strong>.</div>
+    {% endif %}
+
+    {# Seeker: review offers #}
+    {% if user == req.seeker and req.status == 'open' %}
+      <div class="card p-4 mb-3">
+        <h5>Offers received ({{ req.pending_offers.count }})</h5>
+        {% for o in req.pending_offers %}
+          <div class="border rounded p-3 mb-2">
+            <div class="d-flex justify-content-between">
+              <strong><a href="{% url 'user_profile' o.helper.username %}">{{ o.helper.get_full_name|default:o.helper.username }}</a></strong>
+              {% if o.helper.average_rating %}<span class="text-warning small">★ {{ o.helper.average_rating }}</span>{% endif %}
+            </div>
+            <div class="small text-muted">{{ o.helper.skills }}</div>
+            <p class="mb-2 mt-1">{{ o.message }}</p>
+            <form method="post" action="{% url 'offer_accept' o.pk %}">{% csrf_token %}
+              <button class="btn btn-sm btn-ll">Accept this helper</button>
+            </form>
+          </div>
+        {% empty %}<p class="text-muted mb-0">No offers yet — hang tight!</p>{% endfor %}
+      </div>
+    {% endif %}
+
+    {# Messaging thread for matched parties #}
+    {% if thread is not None %}
+      <div class="card p-4 mb-3">
+        <h5>Messages</h5>
+        <div class="mb-3" style="max-height:260px;overflow:auto">
+          {% for m in thread %}
+            <div class="mb-2 {% if m.sender == user %}text-end{% endif %}">
+              <span class="d-inline-block px-3 py-2 rounded {% if m.sender == user %}bg-ll text-white{% else %}bg-light{% endif %}">
+                {{ m.body }}</span>
+              <div class="small text-muted">{{ m.sender.username }} · {{ m.created_at|date:"d M H:i" }}</div>
+            </div>
+          {% empty %}<p class="text-muted">No messages yet.</p>{% endfor %}
+        </div>
+        <form method="post" action="{% url 'message_create' req.pk %}">{% csrf_token %}
+          <div class="input-group">{{ message_form.body }}<button class="btn btn-ll">Send</button></div>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card p-4">
+      <h6>Actions</h6>
+      {% if req.helper %}
+        <p class="small mb-2">Helper:
+          <a href="{% url 'user_profile' req.helper.username %}">{{ req.helper.get_full_name|default:req.helper.username }}</a></p>
+      {% endif %}
+      {% if user == req.seeker or user == req.helper %}
+        {% if req.status == 'in_progress' %}
+          <form method="post" action="{% url 'request_complete' req.pk %}" class="mb-2">{% csrf_token %}
+            <button class="btn btn-success w-100">Mark as completed</button></form>
+        {% endif %}
+        {% if can_review %}
+          <a href="{% url 'review_create' req.pk %}" class="btn btn-ll w-100 mb-2">Leave a review</a>
+        {% endif %}
+      {% endif %}
+      {% if user == req.seeker and req.status == 'open' %}
+        <form method="post" action="{% url 'request_cancel' req.pk %}">{% csrf_token %}
+          <button class="btn btn-outline-danger w-100">Cancel request</button></form>
+      {% endif %}
+      {% if not user.is_authenticated %}
+        <a href="{% url 'login' %}" class="btn btn-ll w-100">Log in to help</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

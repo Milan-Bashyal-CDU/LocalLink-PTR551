@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3 class="mb-1">Welcome back, {{ user.first_name|default:user.username }}</h3>
+<p class="text-muted">Role: <span class="badge bg-ll">{{ user.get_role_display }}</span>
+  {% if user.is_helper %}{% if user.is_verified %}<span class="badge bg-success">Verified</span>{% else %}<span class="badge bg-warning text-dark">Verification pending</span>{% endif %}{% endif %}
+</p>
+
+{% if user.is_seeker %}
+  <div class="d-flex justify-content-between align-items-center mt-4">
+    <h5>My requests</h5><a href="{% url 'request_create' %}" class="btn btn-ll btn-sm">+ New request</a>
+  </div>
+  <div class="table-responsive"><table class="table align-middle">
+    <thead><tr><th>Title</th><th>Category</th><th>Status</th><th>Offers</th><th></th></tr></thead>
+    <tbody>
+    {% for r in my_requests %}
+      <tr>
+        <td><a href="{{ r.get_absolute_url }}">{{ r.title }}</a></td>
+        <td>{{ r.category }}</td>
+        <td><span class="badge bg-{{ r.status_badge }}">{{ r.get_status_display }}</span></td>
+        <td>{{ r.pending_offers.count }}</td>
+        <td><a href="{{ r.get_absolute_url }}" class="btn btn-sm btn-outline-secondary">Open</a></td>
+      </tr>
+    {% empty %}<tr><td colspan="5" class="text-muted">You haven't posted any requests yet.</td></tr>{% endfor %}
+    </tbody>
+  </table></div>
+{% endif %}
+
+{% if user.is_helper %}
+  <div class="row mt-4">
+    <div class="col-md-6">
+      <h5>Tasks I'm helping with</h5>
+      <ul class="list-group mb-4">
+        {% for r in assigned %}
+          <li class="list-group-item d-flex justify-content-between">
+            <a href="{{ r.get_absolute_url }}">{{ r.title }}</a>
+            <span class="badge bg-{{ r.status_badge }}">{{ r.get_status_display }}</span>
+          </li>
+        {% empty %}<li class="list-group-item text-muted">Nothing assigned yet.</li>{% endfor %}
+      </ul>
+      <h5>My offers</h5>
+      <ul class="list-group">
+        {% for o in my_offers %}
+          <li class="list-group-item d-flex justify-content-between">
+            <a href="{{ o.request.get_absolute_url }}">{{ o.request.title }}</a>
+            <span class="badge bg-secondary">{{ o.get_status_display }}</span>
+          </li>
+        {% empty %}<li class="list-group-item text-muted">You haven't made any offers yet.</li>{% endfor %}
+      </ul>
+    </div>
+    <div class="col-md-6">
+      <h5>Requests you could help with</h5>
+      <ul class="list-group">
+        {% for r in available %}
+          <li class="list-group-item">
+            <a href="{{ r.get_absolute_url }}">{{ r.title }}</a>
+            <div class="small text-muted">{{ r.category }} · {{ r.suburb }}
+              · <span class="badge bg-{{ r.urgency_badge }}">{{ r.get_urgency_display|truncatewords:1 }}</span></div>
+          </li>
+        {% empty %}<li class="list-group-item text-muted">No open requests right now.</li>{% endfor %}
+      </ul>
+      <a href="{% url 'request_list' %}" class="btn btn-outline-secondary btn-sm mt-3">See all requests</a>
+    </div>
+  </div>
+{% endif %}
+
+{% if user.is_coordinator %}
+  <div class="row text-center mt-4 g-3">
+    <div class="col-md-3"><div class="card p-3"><div class="h3 text-ll mb-0">{{ total_requests }}</div><div class="small text-muted">Total requests</div></div></div>
+    <div class="col-md-3"><div class="card p-3"><div class="h3 text-ll mb-0">{{ open_requests }}</div><div class="small text-muted">Open now</div></div></div>
+    <div class="col-md-3"><div class="card p-3"><div class="h3 text-ll mb-0">{{ total_helpers }}</div><div class="small text-muted">Registered helpers</div></div></div>
+    <div class="col-md-3"><div class="card p-3"><div class="h3 text-warning mb-0">{{ unverified.count }}</div><div class="small text-muted">Awaiting verification</div></div></div>
+  </div>
+  <h5 class="mt-4">Helpers awaiting verification</h5>
+  <ul class="list-group">
+    {% for h in unverified %}
+      <li class="list-group-item d-flex justify-content-between">
+        <a href="{% url 'user_profile' h.username %}">{{ h.get_full_name|default:h.username }}</a>
+        <span class="small text-muted">{{ h.suburb }} · {{ h.skills }}</span>
+      </li>
+    {% empty %}<li class="list-group-item text-muted">All helpers verified.</li>{% endfor %}
+  </ul>
+  <p class="small text-muted mt-2">Verify helpers in the <a href="/admin/">admin site</a>.</p>
+{% endif %}
+{% endblock %}

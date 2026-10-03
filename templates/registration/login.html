@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-md-5">
+  <div class="card p-4">
+    <h3 class="mb-3">Log in</h3>
+    {% if form.errors %}<div class="alert alert-danger">Invalid username or password.</div>{% endif %}
+    <form method="post">{% csrf_token %}
+      <div class="mb-3"><label class="form-label">Username</label>{{ form.username }}</div>
+      <div class="mb-3"><label class="form-label">Password</label>{{ form.password }}</div>
+      <button class="btn btn-ll w-100">Log in</button>
+    </form>
+    <p class="small text-muted mt-3 mb-0">No account? <a href="{% url 'register' %}">Join LocalLink</a>.</p>
+  </div>
+</div></div>
+<script>
+document.querySelectorAll('#id_username,#id_password').forEach(e=>e.classList.add('form-control'));
+</script>
+{% endblock %}

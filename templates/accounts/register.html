@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-7">
+  <div class="card p-4">
+    <h3 class="mb-1">Join LocalLink</h3>
+    <p class="text-muted">Create your free account in under a minute.</p>
+    <form method="post" novalidate>{% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label fw-semibold">I want to…</label>
+        <div class="d-flex gap-3">
+          {% for radio in form.role %}
+            <div class="form-check">{{ radio.tag }}
+              <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+            </div>
+          {% endfor %}
+        </div>
+        {% if form.role.errors %}<div class="text-danger small">{{ form.role.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="row">
+        <div class="col-md-6 mb-3"><label class="form-label">Username</label>{{ form.username }}
+          {% if form.username.errors %}<div class="text-danger small">{{ form.username.errors.0 }}</div>{% endif %}</div>
+        <div class="col-md-6 mb-3"><label class="form-label">Email</label>{{ form.email }}</div>
+        <div class="col-md-6 mb-3"><label class="form-label">First name</label>{{ form.first_name }}</div>
+        <div class="col-md-6 mb-3"><label class="form-label">Last name</label>{{ form.last_name }}</div>
+        <div class="col-md-6 mb-3"><label class="form-label">Suburb</label>{{ form.suburb }}</div>
+        <div class="col-md-3 mb-3"><label class="form-label">Postcode</label>{{ form.postcode }}</div>
+        <div class="col-md-3 mb-3"><label class="form-label">Phone</label>{{ form.phone }}</div>
+        <div class="col-12 mb-3"><label class="form-label">Skills <span class="text-muted small">(helpers)</span></label>{{ form.skills }}</div>
+        <div class="col-12 mb-3"><label class="form-label">About you</label>{{ form.bio }}</div>
+        <div class="col-md-6 mb-3"><label class="form-label">Password</label>{{ form.password1 }}
+          {% if form.password1.errors %}<div class="text-danger small">{{ form.password1.errors.0 }}</div>{% endif %}</div>
+        <div class="col-md-6 mb-3"><label class="form-label">Confirm password</label>{{ form.password2 }}
+          {% if form.password2.errors %}<div class="text-danger small">{{ form.password2.errors.0 }}</div>{% endif %}</div>
+      </div>
+      <button class="btn btn-ll w-100">Create account</button>
+    </form>
+    <p class="small text-muted mt-3 mb-0">Already a member? <a href="{% url 'login' %}">Log in</a>.</p>
+  </div>
+</div></div>
+{% endblock %}

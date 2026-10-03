@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="hero p-5 mb-4">
+  <div class="row align-items-center">
+    <div class="col-lg-7">
+      <h1 class="display-5 fw-bold">Help is closer than you think.</h1>
+      <p class="fs-5 mt-3">LocalLink connects people who need a hand — with technology, errands, gardening,
+         tutoring or simply a friendly visit — to trusted university students and local volunteers nearby.</p>
+      <div class="mt-4">
+        <a href="{% url 'register' %}" class="btn btn-light btn-lg fw-semibold me-2">Get started</a>
+        <a href="{% url 'request_list' %}" class="btn btn-outline-light btn-lg">Browse requests</a>
+      </div>
+    </div>
+    <div class="col-lg-5 text-center d-none d-lg-block">
+      <i class="bi bi-people-fill" style="font-size:9rem;opacity:.85"></i>
+    </div>
+  </div>
+</div>
+
+<div class="row text-center mb-4">
+  <div class="col-4"><div class="card p-3"><div class="h2 text-ll mb-0">{{ stats.open_requests }}</div><div class="small text-muted">Open requests</div></div></div>
+  <div class="col-4"><div class="card p-3"><div class="h2 text-ll mb-0">{{ stats.completed }}</div><div class="small text-muted">Tasks completed</div></div></div>
+  <div class="col-4"><div class="card p-3"><div class="h2 text-ll mb-0">{{ stats.categories }}</div><div class="small text-muted">Support categories</div></div></div>
+</div>
+
+<h4 class="mb-3">How it works</h4>
+<div class="row g-3 mb-5">
+  <div class="col-md-4"><div class="card h-100 p-4"><i class="bi bi-pencil-square text-ll h2"></i><h5 class="mt-2">1. Post what you need</h5><p class="text-muted mb-0">A seeker describes the task, location and urgency in minutes.</p></div></div>
+  <div class="col-md-4"><div class="card h-100 p-4"><i class="bi bi-hand-thumbs-up text-ll h2"></i><h5 class="mt-2">2. A helper offers</h5><p class="text-muted mb-0">Nearby students and volunteers browse and offer to help.</p></div></div>
+  <div class="col-md-4"><div class="card h-100 p-4"><i class="bi bi-chat-heart text-ll h2"></i><h5 class="mt-2">3. Connect &amp; complete</h5><p class="text-muted mb-0">They coordinate, complete the task, then leave a review.</p></div></div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">Support categories</h4>
+</div>
+<div class="row g-3 mb-5">
+  {% for c in categories %}
+    <div class="col-6 col-md-3">
+      <a href="{% url 'request_list' %}?category={{ c.slug }}" class="text-decoration-none">
+        <div class="card h-100 p-3 text-center">
+          <i class="bi bi-{{ c.icon|default:'grid' }} text-ll h3"></i>
+          <div class="fw-semibold mt-2">{{ c.name }}</div>
+          <div class="small text-muted">{{ c.description }}</div>
+        </div>
+      </a>
+    </div>
+  {% empty %}
+    <p class="text-muted">Categories will appear here once the coordinator adds them.</p>
+  {% endfor %}
+</div>
+
+{% if recent %}
+<h4 class="mb-3">Latest open requests</h4>
+<div class="row g-3">
+  {% for r in recent %}
+    <div class="col-md-6">
+      <div class="card p-3">
+        <div class="d-flex justify-content-between">
+          <a href="{{ r.get_absolute_url }}" class="h6 text-decoration-none text-dark">{{ r.title }}</a>
+          <span class="badge bg-{{ r.urgency_badge }}">{{ r.get_urgency_display|truncatewords:1 }}</span>
+        </div>
+        <div class="small text-muted">{{ r.category }} · {{ r.suburb }}</div>
+        <p class="small mb-0 mt-2">{{ r.description|truncatewords:20 }}</p>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
